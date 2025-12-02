@@ -16,26 +16,30 @@ const (
 	DOCKER_LABEL    = "com.pinacono.hoster"
 )
 
+type hostnameSource string
+
+const (
+	HostnameFromContainerName hostnameSource = "container_name"
+	HostnameFromHostname      hostnameSource = "hostname"
+	HostnameFromLabel         hostnameSource = "label"
+)
+
 type config struct {
-	refreshHostsfileInterval       time.Duration // Interval to check if the hosts file needs to be refreshed
-	hostsfile                      string        // Path to the hosts file
-	hostnameFromContainername      bool          // if true, the container name will be used as hostname
-	hostnameFromContainerHostName  bool					// if true, the container's host name will be used as hostname
-	hostnameFromLabel              bool          // if true, the hostname will be taken from the label as defined in DOCKER_LABEL
-	onlyLabeledContainers      		 bool          // if true, only containers with the label as defined in DOCKER_LABEL will be added to the hosts file
-	logEvents                 		 bool          // if true, log docker events which cause a refresh of the hosts file
-	networkRegexp             		 string        // if set, only containers with a network matching this regexp will be added to the hosts file
+	refreshHostsfileInterval time.Duration    // Interval to check if the hosts file needs to be refreshed
+	hostsfile                string           // Path to the hosts file
+	hostnameFrom             hostnameSource   // Source for hostname: container_name, hostname, or label
+	onlyLabeledContainers    bool             // if true, only containers with the label as defined in DOCKER_LABEL will be added to the hosts file
+	logEvents                bool             // if true, log docker events which cause a refresh of the hosts file
+	networkRegexp            string           // if set, only containers with a network matching this regexp will be added to the hosts file
 }
 
 var conf = config{
-	refreshHostsfileInterval:  		 10 * time.Second,
-	hostsfile:                 		 "/hosts",
-	hostnameFromContainername: 		 true,
-	hostnameFromContainerHostName: false,
-	hostnameFromLabel:         		 false,
-	onlyLabeledContainers:     		 false,
-	logEvents:                 		 false,
-	networkRegexp:             		 ".*",
+	refreshHostsfileInterval: 10 * time.Second,
+	hostsfile:                "/hosts",
+	hostnameFrom:             HostnameFromContainerName,
+	onlyLabeledContainers:    false,
+	logEvents:                false,
+	networkRegexp:            ".*",
 }
 
 // isTrue parses a string and into a boolean
@@ -69,30 +73,17 @@ func (c *config) getFromENV() {
 		}
 	}
 
-	if EnvHostnameFromContainername, ok := os.LookupEnv("CH_HOSTNAME_FROM_CONTAINERNAME"); ok {
-		log.Printf("   found CH_HOSTNAME_FROM_CONTAINERNAME=%s\n", EnvHostnameFromContainername)
-		if EnvHostnameFromContainernameParsed, err := isTrue(EnvHostnameFromContainername); err != nil {
-			log.Printf("Error parsing CH_HOSTNAME_FROM_CONTAINERNAME: %v. Using default value.\n", err)
-		} else {
-			c.hostnameFromContainername = EnvHostnameFromContainernameParsed
-		}
-	}
-
-	if EnvHostnameFromContainerHostName, ok := os.LookupEnv("CH_HOSTNAME_FROM_CONTAINERHOSTNAME"); ok {
-		log.Printf("   found CH_HOSTNAME_FROM_CONTAINERHOSTNAME=%s\n", EnvHostnameFromContainerHostName)
-		if EnvHostnameFromContainerHostNameParsed, err := isTrue(EnvHostnameFromContainerHostName); err != nil {
-			log.Printf("Error parsing CH_HOSTNAME_FROM_CONTAINERHOSTNAME: %v. Using default value.\n", err)
-		} else {
-			c.hostnameFromContainerHostName = EnvHostnameFromContainerHostNameParsed
-		}
-	}
-
-	if EnvHostnameFromLabel, ok := os.LookupEnv("CH_HOSTNAME_FROM_LABEL"); ok {
-		log.Printf("   found CH_HOSTNAME_FROM_LABEL=%s\n", EnvHostnameFromLabel)
-		if EnvHostnameFromLabelParsed, err := isTrue(EnvHostnameFromLabel); err != nil {
-			log.Printf("Error parsing CH_HOSTNAME_FROM_LABEL: %v. Using default value.\n", err)
-		} else {
-			c.hostnameFromLabel = EnvHostnameFromLabelParsed
+	if EnvHostnameFrom, ok := os.LookupEnv("CH_HOSTNAME_FROM"); ok {
+		log.Printf("   found CH_HOSTNAME_FROM=%s\n", EnvHostnameFrom)
+		switch strings.ToLower(EnvHostnameFrom) {
+		case "container_name", "containername":
+			c.hostnameFrom = HostnameFromContainerName
+		case "hostname":
+			c.hostnameFrom = HostnameFromHostname
+		case "label":
+			c.hostnameFrom = HostnameFromLabel
+		default:
+			log.Printf("Error: invalid CH_HOSTNAME_FROM value '%s'. Valid values are: container_name, hostname, label. Using default value.\n", EnvHostnameFrom)
 		}
 	}
 
@@ -125,9 +116,7 @@ func (c *config)logConfig() {
 	log.Printf("Configuration:")
 	log.Printf("   hostsfile: %s", c.hostsfile)
 	log.Printf("   refreshHostsfileInterval: %s", c.refreshHostsfileInterval)
-	log.Printf("   hostnameFromContainername: %t", c.hostnameFromContainername)
-	log.Printf("   hostnameFromContainerHostName: %t", c.hostnameFromContainerHostName)
-	log.Printf("   hostnameFromLabel: %t", c.hostnameFromLabel)
+	log.Printf("   hostnameFrom: %s", c.hostnameFrom)
 	log.Printf("   onlyLabeledContainers: %t", c.onlyLabeledContainers)
 	log.Printf("   logEvents: %t", c.logEvents)
 	log.Printf("   networkRegexp: %s", c.networkRegexp)

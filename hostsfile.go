@@ -69,19 +69,18 @@ func writeHostsfile(bs []byte) error {
 func getContainerHostList(cli *client.Client, container types.Container) string {
 	var s string
 
-	if conf.hostnameFromContainername {
-		s = strings.TrimPrefix(container.Names[len(container.Names)-1], "/") + "  "
-	}
-
-	if conf.hostnameFromContainerHostName {
+	switch conf.hostnameFrom {
+	case HostnameFromContainerName:
+		s = strings.TrimPrefix(container.Names[len(container.Names)-1], "/")
+	case HostnameFromHostname:
 		containerJSON, err := cli.ContainerInspect(context.Background(), container.ID)
 		if err == nil && containerJSON.Config != nil && containerJSON.Config.Hostname != "" {
-			s = containerJSON.Config.Hostname + "  "
+			s = containerJSON.Config.Hostname
 		}
-	}
-
-	if label, ok := container.Labels[DOCKER_LABEL+".name"]; ok && conf.hostnameFromLabel {
-		s = s + label
+	case HostnameFromLabel:
+		if label, ok := container.Labels[DOCKER_LABEL+".name"]; ok {
+			s = label
+		}
 	}
 
 	return strings.Trim(s, " ")
