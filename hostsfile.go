@@ -35,7 +35,7 @@ func refreshHostsfile(cli *client.Client) error {
 				// log.Println("Skipping c", c.Names[len(c.Names)-1], "because it is labeled with", DOCKER_LABEL+".exclude=true")
 				continue
 			}
-			containerHostList := getContainerHostList(c)
+			containerHostList := getContainerHostList(cli, c)
 			if containerHostList != "" {
 				for networkName, networkInfo := range c.NetworkSettings.Networks {
 					if networkRegexpCompiled.MatchString(networkName) && networkInfo.IPAddress != "" {
@@ -65,11 +65,19 @@ func writeHostsfile(bs []byte) error {
 }
 
 // getContainerHostList returns the list of hostnames for a given container
-func getContainerHostList(container types.Container) string {
+// see details for types.Container from https://pkg.go.dev/github.com/docker/docker/api/types/container
+func getContainerHostList(cli *client.Client, container types.Container) string {
 	var s string
 
 	if conf.hostnameFromContainername {
 		s = strings.TrimPrefix(container.Names[len(container.Names)-1], "/") + "  "
+	}
+
+	if conf.hostnameFromContainerHostName {
+		containerJSON, err := cli.ContainerInspect(context.Background(), container.ID)
+		if err == nil && containerJSON.Config != nil && containerJSON.Config.Hostname != "" {
+			s = containerJSON.Config.Hostname + "  "
+		}
 	}
 
 	if label, ok := container.Labels[DOCKER_LABEL+".name"]; ok && conf.hostnameFromLabel {

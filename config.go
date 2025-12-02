@@ -16,23 +16,25 @@ const (
 )
 
 type config struct {
-	refreshHostsfileInterval  time.Duration // Interval to check if the hosts file needs to be refreshed
-	hostsfile                 string        // Path to the hosts file
-	hostnameFromContainername bool          // if true, the container name will be used as hostname
-	hostnameFromLabel         bool          // if true, the hostname will be taken from the label as defined in DOCKER_LABEL
-	onlyLabeledContainers     bool          // if true, only containers with the label as defined in DOCKER_LABEL will be added to the hosts file
-	logEvents                 bool          // if true, log docker events which cause a refresh of the hosts file
-	networkRegexp             string        // if set, only containers with a network matching this regexp will be added to the hosts file
+	refreshHostsfileInterval       time.Duration // Interval to check if the hosts file needs to be refreshed
+	hostsfile                      string        // Path to the hosts file
+	hostnameFromContainername      bool          // if true, the container name will be used as hostname
+	hostnameFromContainerHostName  bool					// if true, the container's host name will be used as hostname
+	hostnameFromLabel              bool          // if true, the hostname will be taken from the label as defined in DOCKER_LABEL
+	onlyLabeledContainers      		 bool          // if true, only containers with the label as defined in DOCKER_LABEL will be added to the hosts file
+	logEvents                 		 bool          // if true, log docker events which cause a refresh of the hosts file
+	networkRegexp             		 string        // if set, only containers with a network matching this regexp will be added to the hosts file
 }
 
 var conf = config{
-	refreshHostsfileInterval:  10 * time.Second,
-	hostsfile:                 "/hosts",
-	hostnameFromContainername: true,
-	hostnameFromLabel:         false,
-	onlyLabeledContainers:     false,
-	logEvents:                 false,
-	networkRegexp:             ".*",
+	refreshHostsfileInterval:  		 10 * time.Second,
+	hostsfile:                 		 "/hosts",
+	hostnameFromContainername: 		 true,
+	hostnameFromContainerHostName: false,
+	hostnameFromLabel:         		 false,
+	onlyLabeledContainers:     		 false,
+	logEvents:                 		 false,
+	networkRegexp:             		 ".*",
 }
 
 // isTrue parses a string and into a boolean
@@ -75,6 +77,15 @@ func (c *config) getFromENV() {
 		}
 	}
 
+	if EnvHostnameFromContainerHostName, ok := os.LookupEnv("CH_HOSTNAME_FROM_CONTAINERHOSTNAME"); ok {
+		log.Printf("   found CH_HOSTNAME_FROM_CONTAINERHOSTNAME=%s\n", EnvHostnameFromContainerHostName)
+		if EnvHostnameFromContainerHostNameParsed, err := isTrue(EnvHostnameFromContainerHostName); err != nil {
+			log.Printf("Error parsing CH_HOSTNAME_FROM_CONTAINERHOSTNAME: %v. Using default value.\n", err)
+		} else {
+			c.hostnameFromContainerHostName = EnvHostnameFromContainerHostNameParsed
+		}
+	}
+
 	if EnvHostnameFromLabel, ok := os.LookupEnv("CH_HOSTNAME_FROM_LABEL"); ok {
 		log.Printf("   found CH_HOSTNAME_FROM_LABEL=%s\n", EnvHostnameFromLabel)
 		if EnvHostnameFromLabelParsed, err := isTrue(EnvHostnameFromLabel); err != nil {
@@ -114,6 +125,7 @@ func (c *config)logConfig() {
 	log.Printf("   hostsfile: %s", c.hostsfile)
 	log.Printf("   refreshHostsfileInterval: %s", c.refreshHostsfileInterval)
 	log.Printf("   hostnameFromContainername: %t", c.hostnameFromContainername)
+	log.Printf("   hostnameFromContainerHostName: %t", c.hostnameFromContainerHostName)
 	log.Printf("   hostnameFromLabel: %t", c.hostnameFromLabel)
 	log.Printf("   onlyLabeledContainers: %t", c.onlyLabeledContainers)
 	log.Printf("   logEvents: %t", c.logEvents)
