@@ -15,9 +15,11 @@ Container hoster is configured via environment variables. If no env variable is 
 
 * ``CH_HOSTNAME_FROM_CONTAINERNAME``: If set to true, the container name will be used as the hostname. Defaults to ``true``.
 
-* ``CH_HOSTNAME_FROM_LABEL``: If set to true, the value given in container label ``de.wollomatic.container-hoster.name`` will be used as hostname. Defaults to ``false``.
+* ``CH_HOSTNAME_FROM_CONTAINERHOSTNAME``: If set to true, the container's hostname name will be used as the hostname. Defaults to ``false``.
 
-* ``CH_ONLY_LABELED_CONTAINERS``: If set to true, only containers with the label ``de.wollomatic.container-hoster.enable=true`` will be added to the hosts file, and all other containers are ignored. Defaults to ``false``, so every container is added to the hosts file.
+* ``CH_HOSTNAME_FROM_LABEL``: If set to true, the value given in container label ``com.pinacoo.hoster.name`` will be used as hostname. Defaults to ``false``.
+
+* ``CH_ONLY_LABELED_CONTAINERS``: If set to true, only containers with the label ``com.pinacoo.hoster.enable=true`` will be added to the hosts file, and all other containers are ignored. Defaults to ``false``, so every container is added to the hosts file.
 
 * ``CH_NETWORK_REGEXP``: A regular expression to match the network name of the container. Only containers with a matching network name will be added to the hosts file. Defaults to ``.*``.
 
@@ -26,11 +28,11 @@ Container hoster is configured via environment variables. If no env variable is 
 ## Container labels
 Container labels are optional. The following labels are available:
 
-* ``de.wollomatic.container-hoster.name``: The hostname to be used for the container if ``CH_HOSTNAME_FROM_LABEL`` is set to ``true``.
+* ``com.pinacoo.hoster.name``: The hostname to be used for the container if ``CH_HOSTNAME_FROM_LABEL`` is set to ``true``.
 
-* ``de.wollomatic.container-hoster.enable``: If set to ``true``, the container will be added to the hosts file. Defaults to ``true``.
+* ``com.pinacoo.hoster.enable``: If set to ``true``, the container will be added to the hosts file. Defaults to ``true``.
 
-* ``de.wollomatic.container-hoster.exclude``: If set to ``true``, the container will be excluded from the hosts file.
+* ``com.pinacoo.hoster.exclude``: If set to ``true``, the container will be excluded from the hosts file.
 
 ## Security
 
@@ -48,4 +50,5 @@ This project is licensed under the [MIT license](LICENSE)
  - see the [LICENSE](LICENSE) file for details
 
 ## Acknowledgments
-Thanks to [David Darias](https://github.com/dvddarias) for the original idea [docker-hoster](https://github.com/dvddarias/docker-hoster).
+ - Thanks to [David Darias](https://github.com/dvddarias) for the original idea [docker-hoster](https://github.com/dvddarias/docker-hoster).
+ - Thanks to https://github.com/wollomatic/container-hoster for the better version of docker-hoster

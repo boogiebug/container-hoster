@@ -1,7 +1,7 @@
 ---
 services:
   container-hoster:
-    image: wollomatic/container-hoster:0.1.1
+    image: dockers.pinacono.com/hoster:latest
     container_name: container-hoster
     read_only: true
     mem_limit: 100M
@@ -14,10 +14,11 @@ services:
     #   - CH_HOSTSFILE=./hosts
     #   - CH_INTERVAL=10s
     #   - CH_HOSTNAME_FROM_CONTAINERNAME=true
+    #   - CH_HOSTNAME_FROM_CONTAINERHOSTNAME=true
     #   - CH_HOSTNAME_FROM_LABEL=false
     #   - CH_ONLY_LABELED_CONTAINERS=true
     #   - CH_NETWORK_REGEXP=.*
     #   - CH_LOG_EVENTS=false
     # labels:
-    #   de.wollomatic.container-hoster.name: "my-container"
-    #   de.wollomatic.container-hoster.enabled: "true"
+    #   com.pinacoo.hoster.name: "my-container"
+    #   com.pinacoo.hoster.enabled: "true"

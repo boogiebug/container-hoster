@@ -10,10 +10,9 @@ ARG VERSION=version_not_set
 RUN GOOS=$TARGETOS GOARCH=$TARGETARCH go build --tags netgo -ldflags="-w -s -X 'main.version=${VERSION}'" -o /container-hoster .
 
 FROM scratch
-LABEL org.opencontainers.image.source=https://github.com/wollomatic/container-hoster
+LABEL org.opencontainers.image.source=https://github.com/boogiebug/container-hoster
 LABEL org.opencontainers.image.description="A simple 'etc/hosts' file injection tool to resolve names of local Docker containers on the host."
 LABEL org.opencontainers.image.licenses=MIT
-LABEL securitytxt="https://wollomatic.de/.well-known/security.txt"
 VOLUME /var/run/docker.sock
 VOLUME /hosts
 ENTRYPOINT ["/container-hoster"]
