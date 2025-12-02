@@ -18,7 +18,5 @@ container-hoster
 # test data
 hosts
 
-# local build script
-build.sh
-
 .idea
+.env
