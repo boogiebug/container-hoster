@@ -12,7 +12,8 @@ const (
 	HOSTLIST_PREFIX = "\n#-----BEGIN CONTAINER-HOSTER GENERATED CONTENT-----\n"
 	HOSTLIST_INFO   = "# Please do not manually change this file while Container-Hoster ist running.\n#\n"
 	HOSTLIST_SUFFIX = "#\n#-----END CONTAINER-HOSTER GENERATED CONTENT-----\n# Every content below this line will be deleted.\n"
-	DOCKER_LABEL    = "de.wollomatic.container-hoster"
+	//DOCKER_LABEL    = "de.wollomatic.container-hoster"
+	DOCKER_LABEL    = "com.pinacono.hoster"
 )
 
 type config struct {
