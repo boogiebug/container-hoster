@@ -1,6 +1,11 @@
 #!/bin/bash
-
+VERSION=1.0.0
 TAGNAME=${TAGNAME:-dockers.pinacono.com/common/hoster}
+DOCKERFILE=Dockerfile
 
-docker build -t ${TAGNAME} .
-docker push dockers.pinacono.com/common/hoster
+docker buildx build \
+  -f $DOCKERFILE \
+  -t $TAGNAME:latest \
+  -t $TAGNAME:$VERSION \
+  --push \
+  .
