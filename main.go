@@ -132,10 +132,9 @@ func refreshHostsfileJob(ech chan<- error, cli *client.Client) {
 			err := refreshHostsfile(cli)
 			if err != nil {
 				ech <- err
-			} else {
-				writeHealthcheck()
 			}
 		}
+		writeHealthcheck()
 		time.Sleep(conf.refreshHostsfileInterval)
 	}
 }
