@@ -19,13 +19,40 @@ const (
 	programURL  = "github.com/wollomatic/container-hoster"
 )
 
+const healthcheckFile = "/tmp/healthy"
+
 var (
 	refreshHostsfileNeeded = true
 	networkRegexpCompiled  *regexp.Regexp
 	version                = "develop" // will be set in Github Action
 )
 
+// writeHealthcheck touches the heartbeat file so the health check knows the program is alive.
+func writeHealthcheck() {
+	if err := os.WriteFile(healthcheckFile, []byte(time.Now().Format(time.RFC3339)), 0644); err != nil { // #nosec G306
+		log.Printf("Warning: could not write healthcheck file: %v", err)
+	}
+}
+
+// runHealthcheck is called when the binary is invoked with --healthcheck.
+// It exits 0 if the heartbeat file is recent, 1 otherwise.
+func runHealthcheck() {
+	const ttl = 60 * time.Second
+	info, err := os.Stat(healthcheckFile)
+	if err != nil {
+		log.Fatalf("health check failed: %v", err)
+	}
+	if age := time.Since(info.ModTime()); age > ttl {
+		log.Fatalf("health check failed: heartbeat is %v old (max %v)", age.Round(time.Second), ttl)
+	}
+	os.Exit(0)
+}
+
 func main() {
+
+	if len(os.Args) > 1 && os.Args[1] == "--healthcheck" {
+		runHealthcheck()
+	}
 
 	log.Printf("--- Starting %s %s (%s, %s, %s) %s ---\n", programName, version, runtime.GOOS, runtime.GOARCH, runtime.Version(), programURL)
 
@@ -105,6 +132,8 @@ func refreshHostsfileJob(ech chan<- error, cli *client.Client) {
 			err := refreshHostsfile(cli)
 			if err != nil {
 				ech <- err
+			} else {
+				writeHealthcheck()
 			}
 		}
 		time.Sleep(conf.refreshHostsfileInterval)
